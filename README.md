@@ -4,6 +4,14 @@ AdvancedBot is a Lua script to be used with **BizHawk** & **TAStudio**. It is cu
 
 It records the inputs for which the fastest change happens (and posts a corresponding log message) and, at the end, inserts the fastest one into the selected branch within TAStudio (if enabled)
 
+## Requirements
+- BizHawk 2.11 with TAStudio enabled.
+
+## How to Run
+1. Download `advancedbot.lua`  
+2. In BizHawk: **Tools → Lua Console → Script → Open…** and select the file
+3. Fill the UI fields and click *Run sweep*
+
 ## Demo
 Watch a video of the bot in action by [clicking here](https://www.youtube.com/watch?v=VKQaV8AZy2k)
 
@@ -32,14 +40,6 @@ The Bizhawk console logs all best attempts, including:
 - Earliest variable change at absolute frame X
 - Duration of frames the sweep button is held (*k*), and what frame it starts on relative to the first frame of the testing window (*s*)
 - Assuming any change was found at all, the final message also reminds you which buttons were held always, and what the sweep button was
-
-## Requirements
-- BizHawk 2.11 with TAStudio enabled.
-
-## Install / Run
-1. Download `advancedbot.lua`  
-2. In BizHawk: **Tools → Lua Console → Script → Open…** and select the file
-3. Fill the UI fields and click *Run sweep*
 
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
