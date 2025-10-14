@@ -38,7 +38,7 @@ Watch a video of the bot in action by [clicking here](https://www.youtube.com/wa
 ## Console output
 The Bizhawk console logs all best attempts, including:
 - Earliest variable change at absolute frame X
-- Duration of frames the sweep button is held (*k*), and what frame it starts on relative to the first frame of the testing window (*s*)
+- Duration of frames the sweep button is held (`k`), and what frame it starts on relative to the first frame of the testing window (`s`)
 - Assuming any change was found at all, the final message also reminds you which buttons were held always, and what the sweep button was
 
 ## Disclaimer: AI assistance
