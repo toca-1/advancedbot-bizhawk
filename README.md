@@ -41,5 +41,8 @@ The Bizhawk console logs all best attempts, including:
 2. In BizHawk: **Tools → Lua Console → Script → Open…** and select the file
 3. Fill the UI fields and click *Run sweep*
 
+## Disclaimer: AI assistance
+Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
+
 ## License
 MIT
