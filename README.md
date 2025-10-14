@@ -9,7 +9,7 @@ It records the inputs for which the fastest change happens (and posts a correspo
 
 ## How to Run
 1. Download `advancedbot.lua`  
-2. In BizHawk: **Tools → Lua Console → Script → Open…** and select the file
+2. In BizHawk: *Tools > Lua Console > Script > Open Script...* and select the file
 3. Fill the UI fields and click *Run sweep*
 
 ## Demo
