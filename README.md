@@ -1,4 +1,4 @@
-AdvancedBot is a Lua script to be used with **BizHawk** & **TAStudio**. It is currently written only with GBA games in mind (tested on BizHawk 2.11). It searches for the earliest frame (within a fixed window) where the value of a given address changes, while holding:
+AdvancedBot is a Lua script to be used with **BizHawk** & **TAStudio**, currently written only with GBA games in mind, and the name is an hommage to [BasicBot](https://tasvideos.org/Bizhawk/BasicBot). AdvancedBot searches for the earliest frame (within a fixed window) where the value of a given address changes, while holding:
 - a set of always-held buttons for the whole window, plus
 - one sweep button for a consecutive run of k frames inside that window.
 
