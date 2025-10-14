@@ -1,14 +1,10 @@
-# AdvancedBot (BizHawk + TAStudio)
-
-AdvancedBot is a Lua script to be used with **BizHawk** & **TAStudio**. It is currently written only with **GBA** games in mind (tested on BizHawk 2.11)
-
-AdvancedBot searches for the earliest frame (within a fixed window) where the value of a given address changes, while holding:
+AdvancedBot is a Lua script to be used with **BizHawk** & **TAStudio**. It is currently written only with GBA games in mind (tested on BizHawk 2.11). It searches for the earliest frame (within a fixed window) where the value of a given address changes, while holding:
 - a set of always-held buttons for the whole window, plus
-- one sweep button for a consecutive run of k frames inside that window
+- one sweep button for a consecutive run of k frames inside that window.
 
-It records the inputs for which the fastest change happens (and posts a corresponding log message) and, at the end, inserts the fastest one into the selected branch within TAStudio (if enabled)
+It records the inputs for which the fastest change happens (and posts a corresponding log message) and, at the end, inserts the fastest one into the selected branch within TAStudio (if enabled). Watch the video of the bot in action by clicking the following image:
+[![Watch the video](https://img.youtube.com/vi/VKQaV8AZy2k/maxresdefault.jpg)](https://www.youtube.com/watch?v=VKQaV8AZy2k)
 
----
 
 ## How it works
 1. The bot reloads the selected TAStudio branch before each run.
@@ -16,8 +12,6 @@ It records the inputs for which the fastest change happens (and posts a correspo
 3. Inputs are written straight into TAStudio
 4. After each frame in the window the bot reads the address given by the user. If the value differs from its initial value, that frame is recorded as a change.  
 5. Across all trials, the earliest frame with a change is reported. If the *Input best* checkbox is enabled, the best inputs are written back into TAStudio at the selected branch
-
----
 
 ## UI reference
 - **Total duration (in frames):** The window size to simulate per trial
@@ -32,25 +26,19 @@ It records the inputs for which the fastest change happens (and posts a correspo
 - **Close window:** Stops the sweep and closes the window
 - **About:** Opens the "About" window with further information
 
----
-
 ## Console output
 The Bizhawk console logs all best attempts, including:
 - Earliest variable change at absolute frame X
 - Duration of frames the sweep button is held (*k*), and what frame it starts on relative to the first frame of the testing window (*s*)
 - Assuming any change was found at all, the final message also reminds you which buttons were held always, and what the sweep button was
 
----
-
 ## Requirements
 - BizHawk 2.11 with TAStudio enabled.
 
 ## Install / Run
-1. Download `advancedbot.lua` from this repo.  
-2. In BizHawk: **Tools → Lua Console → Script → Open…** and select the file.  
-3. Fill the UI fields and click *Run sweep*.
-
----
+1. Download `advancedbot.lua`  
+2. In BizHawk: **Tools → Lua Console → Script → Open…** and select the file
+3. Fill the UI fields and click *Run sweep*
 
 ## License
 MIT
