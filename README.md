@@ -2,9 +2,10 @@ AdvancedBot is a Lua script to be used with **BizHawk** & **TAStudio**. It is cu
 - a set of always-held buttons for the whole window, plus
 - one sweep button for a consecutive run of k frames inside that window.
 
-It records the inputs for which the fastest change happens (and posts a corresponding log message) and, at the end, inserts the fastest one into the selected branch within TAStudio (if enabled). Watch the video of the bot in action by clicking the following image:
-[![Watch the video](https://img.youtube.com/vi/VKQaV8AZy2k/maxresdefault.jpg)](https://www.youtube.com/watch?v=VKQaV8AZy2k)
+It records the inputs for which the fastest change happens (and posts a corresponding log message) and, at the end, inserts the fastest one into the selected branch within TAStudio (if enabled)
 
+## Demo
+Watch a video of the bot in action by [clicking here](https://www.youtube.com/watch?v=VKQaV8AZy2k)
 
 ## How it works
 1. The bot reloads the selected TAStudio branch before each run.
