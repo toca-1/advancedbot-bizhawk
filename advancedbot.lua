@@ -47,7 +47,7 @@ end
 local field_width_small = 80
 local field_width_large = 120
 local BTN_LIST = {"Up","Down","Left","Right","A","B","L","R"}
-local frm = forms.newform(320, 590, "AdvancedBot")
+local frm = forms.newform(320, 650, "AdvancedBot")
 local ybase = 10
 
 forms.label(frm, "Total duration (in frames):", 10, ybase, 130, 20)
@@ -100,7 +100,6 @@ local function count_trials(fd, kmin, kmax)
 	return math.max(0, n)
 end
 
-
 local function clamp_params(fd, kmin, kmax)
 	fd = math.max(1, math.floor(fd or 1))
 	kmin = math.max(0, math.floor(kmin or 0))
@@ -130,21 +129,35 @@ ybase=ybase+20
 local btn_update = forms.button(frm, "Update", function() update_counters_once() end, 230, ybase, 70, 28)
 
 ybase = ybase+40
-forms.label(frm, "Address to watch (hex):", 10, ybase, 130, 20)
+forms.label(frm, "Memory Domain:", 10, ybase, 130, 20)
+local dd_domain = forms.dropdown(frm, {}, 150, ybase-2, field_width_large, 22)
+forms.setdropdownitems(dd_domain, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, false)	-- false keeps order
+forms.setproperty(dd_domain, "SelectedItem", "System Bus")	-- default item
+
+ybase = ybase+28
+forms.label(frm, "Comparison address:", 10, ybase, 130, 20)
 local in_address = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
+local dd_valuesize = forms.dropdown(frm, {"1-byte","2-byte","4-byte"}, 240, ybase-3, field_width_small-20, 22)
+ybase = ybase+28
+local chk_be = forms.checkbox(frm, "Big Endian", 200, ybase-4)
+local chk_ties = forms.checkbox(frm, "Output ties", 10, ybase-4)
+
+ybase = ybase+24
+local chk_secondaddress = forms.checkbox(frm, "2nd address", 10, ybase-4)
 
 ybase = ybase+28
 forms.label(frm, "Memory Domain:", 10, ybase, 130, 20)
-local dd_domain = forms.dropdown(frm, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, 150, ybase-2, field_width_large, 22)
+local dd_domain2 = forms.dropdown(frm, {}, 150, ybase-2, field_width_large, 22)
+forms.setdropdownitems(dd_domain2, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, false)	-- false keeps order
+forms.setproperty(dd_domain2, "SelectedItem", "System Bus")	-- default item
 
 ybase = ybase+28
-forms.label(frm, "Data size:", 10, ybase, 60, 20)
-local dd_valuesize = forms.dropdown(frm, {"1-byte","2-byte","4-byte"}, 80, ybase-2, field_width_small, 22)
+forms.label(frm, "Secondary address:", 10, ybase, 130, 20)
+local in_address2 = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
+local dd_valuesize2 = forms.dropdown(frm, {"1-byte","2-byte","4-byte"}, 240, ybase-3, field_width_small-20, 22)
 
-local chk_be = forms.checkbox(frm, "Big Endian?", 200, ybase-4)
-pcall(function() forms.setproperty(chk_be, "Checked", false) end)
 
-ybase=ybase+40
+ybase=ybase+28
 forms.label(frm, "Always-held buttons:", 10, ybase, 180, 20)
 local chk = {}
 ybase=ybase+20
@@ -156,7 +169,9 @@ end
 
 ybase = ybase + 8 + (math.floor(#BTN_LIST/3)+1)*24
 forms.label(frm, "Sweep button (held consecutively):", 10, ybase, 200, 20)
-local dd_sweep = forms.dropdown(frm, BTN_LIST, 240, ybase, 60, 22)
+local dd_sweep = forms.dropdown(frm, {}, 240, ybase, 60, 22)
+forms.setdropdownitems(dd_sweep, BTN_LIST, false)	-- false keeps order
+forms.setproperty(dd_sweep, "SelectedItem", "Up")	-- default item
 
 ybase=ybase+28
 forms.label(frm, "TAStudio Branch #:", 10, ybase, 220, 20)
@@ -220,6 +235,11 @@ local cfg = {
 	domain = nil,
 	datasize = nil,
 	bigendian = false,
+	tiesoutput = false,
+	secondaddresschecked = false,
+	address2 = nil,
+	domain2 = nil,
+	datasize2 = nil,
 	addresscheck = false,
 	sweep_btn = "",
 	always = {},
@@ -245,6 +265,11 @@ local function reset_search()
 	domain = nil
 	datasize = nil
 	bigendian = false
+	tiesoutput = false
+	secondaddresschecked = false
+	address2 = nil
+	domain2 = nil
+	datasize2 = nil
 	addresscheck = false
 	k, s, i = cfg.kmin, 0, 0
 	tried = 0
@@ -270,7 +295,7 @@ local function start_search()
 	dbg("START", string.format("Search starts with parameters: window size = %d frames, k_min = %d, k_max = %d, address = 0x%X, domain = %s, TAStudio branch = %d, sweep button = %s",cfg.fd,cfg.kmin,cfg.kmax,cfg.address,cfg.domain,cfg.branch0+1,cfg.sweep_btn))
 	local ah = {}
 	for _, b in ipairs(BTN_LIST) do if cfg.always[b] then table.insert(ah, b) end end
-	console.write("Always held buttons = " .. (#ah > 0 and table.concat(ah, "+") or "(none)"), "\n", "\n")
+	console.write("Always held buttons = " .. (#ah > 0 and table.concat(ah, "+") or "(none)"), "\n")
 	phase = "seek"
 	client.unpause()
 end
@@ -308,6 +333,7 @@ local function step_machine()
 
 	if phase == "window" then
 		local r = read_address(cfg.address,cfg.domain,cfg.datasize,cfg.bigendian)
+		local r2 = 0
 		if (first_change == nil) and (r ~= baseline_user_value) then
 			first_change = emu.framecount()
 		end
@@ -316,9 +342,16 @@ local function step_machine()
 		else
 			tried = tried + 1
 			if first_change then
+				if best and first_change == best.abs_frame and cfg.tiesoutput then
+					console.write("\n")
+					dbg("TIED BEST", string.format("Tied best: change happened on abs=%d k=%d s=%d", first_change, k, s))
+					if cfg.secondaddress_checked then console.write("2nd address=",read_address(cfg.address2,cfg.domain2,cfg.datasize2,cfg.bigendian)) end
+				end
 				if (not best) or (first_change < best.abs_frame) then
 					best = {abs_frame = first_change, k = k, s = s, window_frame = first_change - start_frame + 1}
+					console.write("\n")
 					dbg("BEST", string.format("New best: change happened on abs=%d k=%d s=%d windowFrame=%d", best.abs_frame, best.k, best.s, best.window_frame))
+					if cfg.secondaddress_checked then console.write("2nd address=",read_address(cfg.address2,cfg.domain2,cfg.datasize2,cfg.bigendian)) end
 				end
 			end
 			phase = "nextTrial"
@@ -403,7 +436,30 @@ local function read_ui_into_cfg()
 	if not cfg.addresscheck then
 		console.write("Address check failed: " .. tostring(why))
 		console.write("\n","Script did not start","\n")
+		client.pause()
 		return
+	end
+	cfg.tiesoutput = forms.ischecked(chk_ties)
+	cfg.secondaddress_checked = forms.ischecked(chk_secondaddress)
+	if cfg.secondaddress_checked then
+		local s2 = forms.gettext(in_address2) or ""
+		s2 = s2:gsub("^%s+", ""):gsub("%s+$", ""):gsub("^0[xX]", "")	-- accepts with or without 0x
+		cfg.address2 = tonumber(s2, 16)
+		if not cfg.address2 then
+			console.log("Please enter a tie hex address (you checked the \"2nd address\" box)")
+			cfg.addresscheck = false
+			return
+		end
+		cfg.domain2 = forms.gettext(dd_domain2) or "System Bus"
+		local _sz2 = forms.gettext(dd_valuesize2) or "1-byte"
+		cfg.datasize2 = (_sz2:find("^1") and 1) or (_sz2:find("^2") and 2) or 4
+		cfg.addresscheck, why = validate_address(cfg.address2, cfg.domain2, cfg.datasize2)	-- check to see whether the address given by the user is valid
+		if not cfg.addresscheck then
+			console.write("Address check failed: " .. tostring(why))
+			console.write("\n","Script did not start","\n")
+			client.pause()
+			return
+		end
 	end
 	cfg.sweep_btn = forms.gettext(dd_sweep) or "Up"	-- up is default/fallback
 	cfg.branch0 = (tonumber(forms.gettext(in_branch)) or 0) - 1	-- TAStudio branches are indexed at 0
@@ -457,6 +513,12 @@ UI reference
 - Total duration (in frames): The window size to simulate per trial
 - Min/Max # of sweep frames: To further limit the search space so only sweep button sequences of length k_min <= k <= k_max are tested. If left empty, k_min = 0 and k_max = total duration
 - Trials / Frames / FPS value / Est. time / Update: To give an idea of how long the sweep will take. The FPS value has to be entered by hand, and the Est. Time updates only when the "Update" button is clicked
+- Memory Domain: Memory domain where the comparison address lives
+- Comparison address: Address based on which "best" runs are declared (enter in hex format); the dropdown to the right is the size of the address
+- Big endian: if checked, all addresses are read as big endian
+- Output ties: unchecked by default, in which case only true improvements are output to the console. If checked, also results which are equal to the current best are posted to the console
+- 2nd address: if checked, the value of a 2nd address is output to the console on any "best"/"ties" read. Note that this is NOT a tie breaker, only an informational read for the user
+- Memory Domain / Secondary address: if "2nd address" is checked, then the info of the corresponding address has to be input here
 - Always-held buttons: As the name suggests, buttons that are held for every frame of the window in every trial
 - Sweep button: The button that is tested for k consecutive frames within the window. 
 - TAStudio Branch: Input which TAStudio branch should be used for testing. The frame of the corresponding branch is also the first frame of the testing window
