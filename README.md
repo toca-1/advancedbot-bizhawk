@@ -33,6 +33,12 @@ The Bizhawk console logs all best attempts, including:
 - If "output ties" is selected, then not only the best attempts but also attempts which tie the current best are output to the console
 - If "2nd address" is checked, then every (tied) best in the console also features the value at the secondary address at the end of the testing window
 
+## Tips & tricks
+
+Ways to speed up the search:
+- Unthrottle the clock for maximum emulation speed (Config > Speed/Skip > Unthrottled)
+- If the frame window that's being tested is currently visible in TAStudio that slowed the emulator down by as much as 50%. In turn, this means that you can double the testing speed by scrolling up or down in TAStudio until none of the visible frames are part of the frames that are currently being tested by the bot
+
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
 
