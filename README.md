@@ -35,8 +35,10 @@ The Bizhawk console logs all best attempts, including:
 
 ## Tips & tricks
 Ways to speed up the search:
-- Unthrottle the clock for maximum emulation speed (Config > Speed/Skip > Unthrottled)
-- If the frame window that's being tested is currently visible in TAStudio that slowed the emulator down by as much as 50%. In turn, this means that you can double the testing speed by scrolling up or down in TAStudio until none of the visible frames are part of the frames that are currently being tested by the bot
+- Unthrottle the clock for maximum emulation speed (*Config > Speed/Skip > Unthrottled*)
+- TAStudio being visible slows down the search by as much as 65% because of all the updating that's happening, so **minimizing TAStudio** while the search is running gives a massive speed boost because the updates. If you have to keep TAStudio open for your search, you can still greatly speed up the search by **scrolling up or down** in TAStudio until none of the testing frames visible anymore (reduces visual updating)
+- Turn off the sound when the emulator is fast forwarding: *Config > Sound*, and make sure that "Mute Frame Advance" is checked. Also, above "RW & FF" you may uncheck the "Ena." checkbox
+- Small values of `k` take way longer to search then large values of `k` (simply because there are 100 ways to fit 1 input into 100 frames, but only 3 values of fitting 98 *consecutive* inputs in there). So in order to minimize your estimated time, make the number in "min # of sweep frames" as large as possible (while, of course, making sure that you don't miss out on any possible solutions because your `k_min` was too large)
 
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
