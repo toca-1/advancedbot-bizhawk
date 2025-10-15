@@ -43,8 +43,6 @@ local function validate_address(address, domain, datasize)
 	return true
 end
 
-
-
 -- ui
 local field_width_small = 80
 local field_width_large = 120
@@ -63,22 +61,7 @@ ybase = ybase+28
 forms.label(frm, "Max # of sweep frames:", 10, ybase, 130, 20)
 local in_kmax = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
 
-ybase = ybase+40
-forms.label(frm, "Address to watch (hex):", 10, ybase, 130, 20)
-local in_address = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
-
 ybase = ybase+28
-forms.label(frm, "Memory Domain:", 10, ybase, 130, 20)
-local dd_domain = forms.dropdown(frm, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, 150, ybase-2, field_width_large, 22)
-
-ybase = ybase+28
-forms.label(frm, "Data size:", 10, ybase, 60, 20)
-local dd_valuesize = forms.dropdown(frm, {"1-byte","2-byte","4-byte"}, 80, ybase-2, field_width_small, 22)
-
-local chk_be = forms.checkbox(frm, "Big Endian?", 200, ybase-4)
-pcall(function() forms.setproperty(chk_be, "Checked", false) end)
-
-ybase = ybase+44
 forms.label(frm, "Trials:", 10, ybase, 60, 20)
 local lbl_trials = forms.label(frm, "-", 80, ybase, 80, 20)
 
@@ -117,6 +100,7 @@ local function count_trials(fd, kmin, kmax)
 	return math.max(0, n)
 end
 
+
 local function clamp_params(fd, kmin, kmax)
 	fd = math.max(1, math.floor(fd or 1))
 	kmin = math.max(0, math.floor(kmin or 0))
@@ -145,7 +129,22 @@ end
 ybase=ybase+20
 local btn_update = forms.button(frm, "Update", function() update_counters_once() end, 230, ybase, 70, 28)
 
-ybase=ybase+28
+ybase = ybase+40
+forms.label(frm, "Address to watch (hex):", 10, ybase, 130, 20)
+local in_address = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
+
+ybase = ybase+28
+forms.label(frm, "Memory Domain:", 10, ybase, 130, 20)
+local dd_domain = forms.dropdown(frm, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, 150, ybase-2, field_width_large, 22)
+
+ybase = ybase+28
+forms.label(frm, "Data size:", 10, ybase, 60, 20)
+local dd_valuesize = forms.dropdown(frm, {"1-byte","2-byte","4-byte"}, 80, ybase-2, field_width_small, 22)
+
+local chk_be = forms.checkbox(frm, "Big Endian?", 200, ybase-4)
+pcall(function() forms.setproperty(chk_be, "Checked", false) end)
+
+ybase=ybase+40
 forms.label(frm, "Always-held buttons:", 10, ybase, 180, 20)
 local chk = {}
 ybase=ybase+20
@@ -179,9 +178,22 @@ local function load_branch(idx0)
 	if not tastudio or not tastudio.engaged() then
 		return false, "TAStudio not engaged"
 	end
-	local ok, err
-	if tastudio.loadbranch then ok, err = pcall(tastudio.loadbranch, idx0); if ok then return true end end
-	return false, "no compatible tastudio.loadbranch function"
+	if not (tastudio.getbranches and tastudio.loadbranch) then
+		return false, "TAStudio API not available (getbranches/loadbranch)"
+	end
+	local ok_list, branches = pcall(tastudio.getbranches)
+	if not ok_list or type(branches) ~= "table" then
+		return false, "Could not obtain TAStudio branches"
+	end
+	local count = #branches	-- branches is indexed at 0 so count is the highest-numbered branch in tastudio MINUS 1
+	if count == 0 then
+		return false, "No branches exist"
+	end
+	if idx0 < 0 or idx0 > count then	-- check to only load branches that currently exist
+		return false, string.format("Branch #%d does not exist",idx0+1)
+	end
+	tastudio.loadbranch(idx0)
+	return true
 end
 
 local function write_window_to_tastudio(start_frame, fd, k, s, sweep_btn, always)
@@ -254,6 +266,11 @@ local function start_search()
 	else
 		dbg("ERR", "TAStudio not engaged; open TAStudio before running.")
 	end
+	console.write("\n")
+	dbg("START", string.format("Search starts with parameters: window size = %d frames, k_min = %d, k_max = %d, address = 0x%X, domain = %s, TAStudio branch = %d, sweep button = %s",cfg.fd,cfg.kmin,cfg.kmax,cfg.address,cfg.domain,cfg.branch0+1,cfg.sweep_btn))
+	local ah = {}
+	for _, b in ipairs(BTN_LIST) do if cfg.always[b] then table.insert(ah, b) end end
+	console.write("Always held buttons = " .. (#ah > 0 and table.concat(ah, "+") or "(none)"), "\n", "\n")
 	phase = "seek"
 	client.unpause()
 end
@@ -275,6 +292,7 @@ local function step_machine()
 				console.write("Failed to load TAStudio branch: " .. tostring(err))
 				running = false
 				phase = "idle"
+				client.pause()
 				return
 			end
 			start_frame = emu.framecount()
@@ -343,6 +361,7 @@ local function step_machine()
 				local ok, err = load_branch(cfg.branch0)
 				if not ok then
 					dbg("ERR", "Could not reload branch to apply best: " .. tostring(err))
+					client.pause()
 				else
 					local startf = emu.framecount()
 					tastudio.setplayback(startf - 1)
@@ -375,9 +394,9 @@ local function read_ui_into_cfg()
 		cfg.addresscheck = false
 		return
 	end
-	cfg.domain    = forms.gettext(dd_domain) or "System Bus"
-	local _sz     = forms.gettext(dd_valuesize) or "1-byte"
-	cfg.datasize  = (_sz:find("^1") and 1) or (_sz:find("^2") and 2) or 4
+	cfg.domain = forms.gettext(dd_domain) or "System Bus"
+	local _sz = forms.gettext(dd_valuesize) or "1-byte"
+	cfg.datasize = (_sz:find("^1") and 1) or (_sz:find("^2") and 2) or 4
 	cfg.bigendian = forms.ischecked(chk_be)
 	local why = nil
 	cfg.addresscheck, why = validate_address(cfg.address, cfg.domain, cfg.datasize)	-- check to see whether the address given by the user is valid
@@ -387,7 +406,7 @@ local function read_ui_into_cfg()
 		return
 	end
 	cfg.sweep_btn = forms.gettext(dd_sweep) or "Up"	-- up is default/fallback
-	cfg.branch0 = (tonumber(forms.gettext(in_branch)) or 1) - 1
+	cfg.branch0 = (tonumber(forms.gettext(in_branch)) or 0) - 1	-- TAStudio branches are indexed at 0
 	cfg.always = {}
 	for _, b in ipairs(BTN_LIST) do cfg.always[b] = forms.ischecked(chk[b]) end
 end
@@ -457,8 +476,8 @@ The console logs all best attempts, including the following info:
 	local tb = forms.textbox(af, txt, W - 30, H - 60, nil, 10, 10, true, false, "Vertical")
 	pcall(function()
 		forms.setproperty(tb, "Multiline", true)
-		forms.setproperty(tb, "WordWrap",  true)
-		forms.setproperty(tb, "ReadOnly",  true)
+		forms.setproperty(tb, "WordWrap", true)
+		forms.setproperty(tb, "ReadOnly", true)
 		forms.setproperty(tb, "ScrollBars","Vertical")
 	end)
 	local crlf = txt:gsub("\r\n", "\n"):gsub("\r", "\n"):gsub("\n", "\r\n")
