@@ -40,6 +40,7 @@ Ways to speed up the search:
 - Turn off the sound when the emulator is fast forwarding: *Config > Sound*, and make sure that "Mute Frame Advance" is checked. Also, above "RW & FF" you may uncheck the "Ena." checkbox
 - Small values of `k` take way longer to search then large values of `k` (simply because there are 100 ways to fit 1 input into 100 frames, but only 3 values of fitting 98 *consecutive* inputs in there). So in order to minimize your estimated time, make the number in **"min # of sweep frames" as large as possible** (while, of course, making sure that you don't miss out on any possible solutions because your `k_min` was too large)
 - Disable any other scripts that you are running, especially those which involve reading memory
+- Total durations of 100 frames are the threshold where the bot's runtime starts getting critial, especially if *min/max # of sweep frames* is not set properly
 
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
