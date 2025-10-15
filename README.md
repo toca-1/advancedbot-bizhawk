@@ -22,24 +22,16 @@ Watch a video of the bot in action by [clicking here](https://www.youtube.com/wa
 4. After each frame in the window the bot reads the address given by the user. If the value differs from its initial value, that frame is recorded as a change.  
 5. Across all trials, the earliest frame with a change is reported. If the *Input best* checkbox is enabled, the best inputs are written back into TAStudio at the selected branch
 
-## UI reference
-- **Total duration (in frames):** The window size to simulate per trial
-- **Min/Max # of sweep frames:** Further limit the search space so only sweep-button sequences of length `k_min ≤ k ≤ k_max` are tested. If left empty, `k_min = 0` and `k_max = total duration`
-- **Trials / Frames / FPS value / Est. time / Update:** Gives an idea of how long the sweep will take. The FPS value must be entered manually; *Est. time* updates only when *Update* is clicked.  
-- **Always-held buttons:** Buttons held for every frame of the window in every trial
-- **Sweep button:** The button tested for `k` consecutive frames within the window
-- **TAStudio Branch:** Which TAStudio branch should be used for testing. The frame of that branch is also the **first frame** of the testing window
-- **Input best:** If checked, after the sweep finishes (and a best is found), the bot reloads the branch once more and writes the best input sequence into TAStudio
-- **Run sweep:** Starts the sweep using the given values
-- **Pause sweep:** Toggles pause/resume of the script
-- **Close window:** Stops the sweep and closes the window
-- **About:** Opens the "About" window with further information
+## UI
+To get detailed info on the UI, click "About" at the bottom of the AdvancedBot window. This opens an additional window with further information and explanations.
 
 ## Console output
 The Bizhawk console logs all best attempts, including:
 - Earliest variable change at absolute frame X
 - Duration of frames the sweep button is held (`k`), and what frame it starts on relative to the first frame of the testing window (`s`)
 - Assuming any change was found at all, the final message also reminds you which buttons were held always, and what the sweep button was
+- If "output ties" is selected, then not only the best attempts but also attempts which tie the current best are output to the console
+- If "2nd address" is checked, then every (tied) best in the console also features the value at the secondary address at the end of the testing window
 
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
