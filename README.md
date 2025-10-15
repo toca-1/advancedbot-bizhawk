@@ -13,7 +13,7 @@ BizHawk 2.11 with TAStudio enabled
 3. Fill the UI fields and click *Run sweep*
 
 ## Demo
-Watch a video of the bot in action by [clicking here](https://www.youtube.com/watch?v=VKQaV8AZy2k)
+Watch a video of the bot in action by [clicking here](https://www.youtube.com/watch?v=VKQaV8AZy2k) (see also the "Tips & tricks" section at the end of this README)
 
 ## How it works
 1. The bot reloads the selected TAStudio branch before each run.
