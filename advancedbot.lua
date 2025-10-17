@@ -50,20 +50,20 @@ local BTN_LIST = {"Up","Down","Left","Right","A","B","L","R"}
 local frm = forms.newform(320, 740, "AdvancedBot")
 local ybase = 10
 
-forms.label(frm, "Total duration (in frames):", 10, ybase, 150, 20)
-local in_fd = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
+forms.label(frm, "Total duration (in frames):", 10, ybase, 180, 20)
+local in_fd = forms.textbox(frm, "", field_width_small, 20, nil, 200, ybase-2)
 
 ybase = ybase+28
-forms.label(frm, "Min # of sweep frames:", 10, ybase, 150, 20)
-local in_kmin = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
+forms.label(frm, "Min # of sweep frames:", 10, ybase, 180, 20)
+local in_kmin = forms.textbox(frm, "", field_width_small, 20, nil, 200, ybase-2)
 
 ybase = ybase+28
-forms.label(frm, "Max # of sweep frames:", 10, ybase, 150, 20)
-local in_kmax = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
+forms.label(frm, "Max # of sweep frames:", 10, ybase, 180, 20)
+local in_kmax = forms.textbox(frm, "", field_width_small, 20, nil, 200, ybase-2)
 
 ybase = ybase+28
-forms.label(frm, "No sweep inputs after frame:", 10, ybase, 150, 20)
-local in_upperbound = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
+forms.label(frm, "No sweep inputs after relative frame:", 10, ybase, 180, 20)
+local in_upperbound = forms.textbox(frm, "", field_width_small, 20, nil, 200, ybase-2)
 
 ybase = ybase+28
 forms.label(frm, "Trials:", 10, ybase, 60, 20)
@@ -309,6 +309,7 @@ local function start_search()
 	end
 	console.write("\n")
 	dbg("START", string.format("Search starts with parameters: window size = %d frames, k_min = %d, k_max = %d, address = 0x%X, domain = %s, TAStudio branch = %d, sweep button = %s",cfg.fd,cfg.kmin,cfg.kmax,cfg.address,cfg.domain,cfg.branch0+1,cfg.sweep_btn))
+	if cfg.upperbound < cfg.fd then console.write(string.format("Upper bound specified: no sweep inputs after frame %d (relative to the search window)",cfg.upperbound),"\n") end
 	local ah = {}
 	for _, b in ipairs(BTN_LIST) do if cfg.always[b] then table.insert(ah, b) end end
 	console.write("Always held buttons = " .. (#ah > 0 and table.concat(ah, "+") or "(none)"), "\n")
@@ -534,6 +535,7 @@ UI reference
 ------------
 - Total duration (in frames): The window size to simulate per trial
 - Min/Max # of sweep frames: To further limit the search space so only sweep button sequences of length k_min <= k <= k_max are tested. If left empty, k_min = 0 and k_max = total duration
+- No sweep inputs after frame: This is useful to reduce the search space for scenarios where you have to wait for a variable change after the relevant sweep input window. If empty this is set to the total duration, thus having no effect if not specified
 - Trials / Frames / FPS value / Est. time / Update: To give an idea of how long the sweep will take. The FPS value has to be entered by hand, and the Est. Time updates only when the "Update" button is clicked
 - Memory Domain: Memory domain where the comparison address lives
 - Comparison address: Address based on which "best" runs are declared (enter in hex format); the dropdown to the right is the size of the address
