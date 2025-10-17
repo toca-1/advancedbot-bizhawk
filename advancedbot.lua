@@ -47,7 +47,7 @@ end
 local field_width_small = 80
 local field_width_large = 120
 local BTN_LIST = {"Up","Down","Left","Right","A","B","L","R"}
-local frm = forms.newform(320, 650, "AdvancedBot")
+local frm = forms.newform(320, 700, "AdvancedBot")
 local ybase = 10
 
 forms.label(frm, "Total duration (in frames):", 10, ybase, 130, 20)
@@ -573,5 +573,6 @@ update_counters_once()
 event.unregisterbyname("ROOM_SWEEP_MACHINE")
 event.unregisterbyname("ROOM_SWEEP_INPUTS")
 event.oninputpoll(function() end, "ROOM_SWEEP_INPUTS")
+
 
 event.onframeend(step_machine, "ROOM_SWEEP_MACHINE")
