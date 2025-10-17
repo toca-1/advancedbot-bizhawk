@@ -129,9 +129,10 @@ ybase=ybase+20
 local btn_update = forms.button(frm, "Update", function() update_counters_once() end, 230, ybase, 70, 28)
 
 ybase = ybase+40
+local DOMAIN_ITEMS = {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}
 forms.label(frm, "Memory Domain:", 10, ybase, 130, 20)
-local dd_domain = forms.dropdown(frm, {}, 150, ybase-2, field_width_large, 22)
-forms.setdropdownitems(dd_domain, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, false)	-- false keeps order
+local dd_domain = forms.dropdown(frm, {""}, 150, ybase-2, field_width_large, 22)	-- changed "" to {""} because on Bizhawk 2.10 and earlier the constructor cannot be empty (indexing issue)
+forms.setdropdownitems(dd_domain, DOMAIN_ITEMS, false)	-- false keeps order
 forms.setproperty(dd_domain, "SelectedItem", "System Bus")	-- default item
 
 ybase = ybase+28
@@ -147,8 +148,8 @@ local chk_secondaddress = forms.checkbox(frm, "2nd address", 10, ybase-4)
 
 ybase = ybase+28
 forms.label(frm, "Memory Domain:", 10, ybase, 130, 20)
-local dd_domain2 = forms.dropdown(frm, {}, 150, ybase-2, field_width_large, 22)
-forms.setdropdownitems(dd_domain2, {"IWRAM","EWRAM","BIOS","PALRAM","VRAM","OAM","ROM","SRAM","Combined WRAM","System Bus"}, false)	-- false keeps order
+local dd_domain2 = forms.dropdown(frm, {""}, 150, ybase-2, field_width_large, 22)	-- changed "" to {""} because on Bizhawk 2.10 and earlier the constructor cannot be empty (indexing issue)
+forms.setdropdownitems(dd_domain2, DOMAIN_ITEMS, false)	-- false keeps order
 forms.setproperty(dd_domain2, "SelectedItem", "System Bus")	-- default item
 
 ybase = ybase+28
@@ -168,7 +169,7 @@ end
 
 ybase = ybase + 8 + (math.floor(#BTN_LIST/3)+1)*24
 forms.label(frm, "Sweep button (held consecutively):", 10, ybase, 200, 20)
-local dd_sweep = forms.dropdown(frm, {}, 240, ybase, 60, 22)
+local dd_sweep = forms.dropdown(frm, {""}, 240, ybase, 60, 22)	-- changed "" to {""} because on Bizhawk 2.10 and earlier the constructor cannot be empty (indexing issue)
 forms.setdropdownitems(dd_sweep, BTN_LIST, false)	-- false keeps order
 forms.setproperty(dd_sweep, "SelectedItem", "Up")	-- default item
 
