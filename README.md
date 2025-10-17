@@ -42,6 +42,10 @@ Ways to speed up the search:
 - Disable any other scripts that you are running, especially those which involve reading memory
 - Total durations of 100 frames are the threshold where the bot's runtime starts getting critial, especially if *min/max # of sweep frames* is not set properly
 
+## Known issues
+
+Currently known bugs are listed [here](https://github.com/toca-1/advancedbot-bizhawk/blob/main/KNOWNISSUES.md)
+
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
 
