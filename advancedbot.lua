@@ -19,7 +19,7 @@ local function validate_address(address, domain, datasize)
 	end
 	local domains = {}
 	if memory.getmemorydomainlist then
-		for _, d in ipairs(memory.getmemorydomainlist()) do domains[d] = true end
+		for _, d in pairs(memory.getmemorydomainlist()) do domains[d] = true end
 	end
 	if next(domains) and not domains[domain] then
 		return false, "Unknown memory domain: " .. tostring(domain)
@@ -156,7 +156,6 @@ forms.label(frm, "Secondary address:", 10, ybase, 130, 20)
 local in_address2 = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
 local dd_valuesize2 = forms.dropdown(frm, {"1-byte","2-byte","4-byte"}, 240, ybase-3, field_width_small-20, 22)
 
-
 ybase=ybase+28
 forms.label(frm, "Always-held buttons:", 10, ybase, 180, 20)
 local chk = {}
@@ -200,10 +199,10 @@ local function load_branch(idx0)
 	if not ok_list or type(branches) ~= "table" then
 		return false, "Could not obtain TAStudio branches"
 	end
-	local count = #branches	-- branches is indexed at 0 so count is the highest-numbered branch in tastudio MINUS 1
-	if count == 0 then
+	if branches[0] == nil then
 		return false, "No branches exist"
 	end
+	local count = #branches	-- note: "branches" is 0-indexed
 	if idx0 < 0 or idx0 > count then	-- check to only load branches that currently exist
 		return false, string.format("Branch #%d does not exist",idx0+1)
 	end
@@ -286,6 +285,14 @@ local function start_search()
 	running = true
 	paused = false
 	if btn_pause then pcall(function() forms.settext(btn_pause, "Pause sweep") end) end
+	local ok, err = load_branch(cfg.branch0)
+	if not ok then
+		console.log("Failed to load TAStudio branch: " .. tostring(err))
+		running = false
+		phase = "idle"
+		client.pause()
+		return
+	end
 	if tastudio and tastudio.engaged() then
 		tastudio.setrecording(true)
 	else
@@ -302,7 +309,7 @@ end
 
 local function stop_everything()
 	running = false
-	paused = false
+	paused = true
 	phase = "idle"
 	event.unregisterbyname("ROOM_SWEEP_MACHINE")
 	event.unregisterbyname("ROOM_SWEEP_INPUTS")
@@ -312,15 +319,10 @@ local function step_machine()
 	if not running or paused then return end
 	if phase == "seek" then
 		if i == 0 then
-			local ok, err = load_branch(cfg.branch0)
-			if not ok then
-				console.write("Failed to load TAStudio branch: " .. tostring(err))
-				running = false
-				phase = "idle"
-				client.pause()
-				return
-			end
+			load_branch(cfg.branch0)
 			start_frame = emu.framecount()
+			tastudio.submitclearframes(start_frame, cfg.fd)	-- clear search window first
+			tastudio.applyinputchanges()	--clear search window first
 			tastudio.setplayback(start_frame - 1)
 			baseline_user_value = read_address(cfg.address,cfg.domain,cfg.datasize,cfg.bigendian)
 			first_change = nil
@@ -334,7 +336,7 @@ local function step_machine()
 	if phase == "window" then
 		local r = read_address(cfg.address,cfg.domain,cfg.datasize,cfg.bigendian)
 		local r2 = 0
-		if (first_change == nil) and (r ~= baseline_user_value) then
+		if (first_change == nil) and (r ~= baseline_user_value) and (emu.framecount() > start_frame) then
 			first_change = emu.framecount()
 		end
 		if i < cfg.fd+2 then	-- +2 needed because i does not start at 0 (i=1 in seek and +1 from starting a frame early in write_window_to_tastudio, so I need this +2 to offset things)
@@ -382,6 +384,8 @@ local function step_machine()
 	
 	if phase == "done" then
 		running = false
+		paused = true
+		phase = "idle"
 		client.pause()
 		if best then
 			local hold_from = best.s + 1
@@ -397,15 +401,23 @@ local function step_machine()
 					client.pause()
 				else
 					local startf = emu.framecount()
+					tastudio.submitclearframes(startf, cfg.fd)	-- clear search window first
+					tastudio.applyinputchanges()	--clear search window first
 					tastudio.setplayback(startf - 1)
 					write_window_to_tastudio(startf, cfg.fd, best.k, best.s, cfg.sweep_btn, cfg.always)
 					dbg("BEST", string.format("Best solution written at frame %d (len=%d, start offset=%d). Address change happened on frame %d", startf, best.k, best.s, best.abs_frame))
+					tastudio.setmarker(best.abs_frame,"earliest found change")
 				end
 			end
 			local ah = {}
 			for _, b in ipairs(BTN_LIST) do if cfg.always[b] then table.insert(ah, b) end end
 				console.write("Always held: " .. (#ah > 0 and table.concat(ah, "+") or "(none)"))
 		else
+			local ok, err = load_branch(cfg.branch0)	-- restore old branch
+			if not ok then
+				dbg("ERR", "Could not restore old branch: " .. tostring(err))
+				client.pause()
+			end	
 			console.write(string.format("No variable change detected in any of the %d trials.", total_trials))
 		end
 		return
@@ -560,4 +572,5 @@ update_counters_once()
 event.unregisterbyname("ROOM_SWEEP_MACHINE")
 event.unregisterbyname("ROOM_SWEEP_INPUTS")
 event.oninputpoll(function() end, "ROOM_SWEEP_INPUTS")
+
 event.onframeend(step_machine, "ROOM_SWEEP_MACHINE")
