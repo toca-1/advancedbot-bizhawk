@@ -47,19 +47,23 @@ end
 local field_width_small = 80
 local field_width_large = 120
 local BTN_LIST = {"Up","Down","Left","Right","A","B","L","R"}
-local frm = forms.newform(320, 700, "AdvancedBot")
+local frm = forms.newform(320, 740, "AdvancedBot")
 local ybase = 10
 
-forms.label(frm, "Total duration (in frames):", 10, ybase, 130, 20)
-local in_fd = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
+forms.label(frm, "Total duration (in frames):", 10, ybase, 150, 20)
+local in_fd = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
 
 ybase = ybase+28
-forms.label(frm, "Min # of sweep frames:", 10, ybase, 130, 20)
-local in_kmin = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
+forms.label(frm, "Min # of sweep frames:", 10, ybase, 150, 20)
+local in_kmin = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
 
 ybase = ybase+28
-forms.label(frm, "Max # of sweep frames:", 10, ybase, 130, 20)
-local in_kmax = forms.textbox(frm, "", field_width_small, 20, nil, 150, ybase-2)
+forms.label(frm, "Max # of sweep frames:", 10, ybase, 150, 20)
+local in_kmax = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
+
+ybase = ybase+28
+forms.label(frm, "No sweep inputs after frame:", 10, ybase, 150, 20)
+local in_upperbound = forms.textbox(frm, "", field_width_small, 20, nil, 170, ybase-2)
 
 ybase = ybase+28
 forms.label(frm, "Trials:", 10, ybase, 60, 20)
@@ -88,35 +92,37 @@ local function seconds_to_hms(sec)
 end
 
 -- special case: k=0 is just 1 trial
-local function count_trials(fd, kmin, kmax)
+local function count_trials(fd, kmin, kmax, bound)
 	local n = 0
 	for k = kmin, kmax do
 		if k == 0 then
 			n = n + 1
 		else
-			n = n + (fd - k + 1)
+			n = n + (bound - k + 1)
 		end
 	end
 	return math.max(0, n)
 end
 
-local function clamp_params(fd, kmin, kmax)
-	fd = math.max(1, math.floor(fd or 1))
+local function clamp_params(fd, kmin, kmax, bound)
+	fd = math.max(1, math.floor(fd or 1))	-- math.floor to prevent non-integer inputs
 	kmin = math.max(0, math.floor(kmin or 0))
 	kmax = math.max(0, math.floor(kmax or fd))
 	if kmin > kmax then kmin, kmax = kmax, kmin end	-- taking care of all kinds of edge cases
 	if kmin > fd then kmin = fd end
 	if kmax > fd then kmax = fd end
-	return fd, kmin, kmax
+	bound = math.max(kmax, math.min(fd, math.floor(bound or fd)))	-- if bound not set, set it to fd (=no effect on search), else make sure it's between kmax and fd
+	return fd, kmin, kmax, bound
 end
 
 local function update_counters_once()
 	local fd_ui = tonumber(forms.gettext(in_fd))
 	local kmin_ui = tonumber(forms.gettext(in_kmin))
 	local kmax_ui = tonumber(forms.gettext(in_kmax))
-	local speed_ui = tonumber(forms.gettext(in_fps)) or 1.0
-	local fd, kmin, kmax = clamp_params(fd_ui or 1, kmin_ui or 0, kmax_ui or (fd_ui or 1))
-	local trials = count_trials(fd, kmin, kmax)
+	local bound_ui = tonumber(forms.gettext(in_upperbound))
+	local speed_ui = tonumber(forms.gettext(in_fps)) or 60.0
+	local fd, kmin, kmax, boundui = clamp_params(fd_ui, kmin_ui, kmax_ui, bound_ui)
+	local trials = count_trials(fd, kmin, kmax, boundui)
 	local frames = trials * fd
 	local denom = (speed_ui > 0) and (speed_ui) or nil
 	local eta = denom and (frames / denom) or nil
@@ -231,6 +237,7 @@ local cfg = {
 	fd = 0,
 	kmin = 0,
 	kmax = 0,
+	upperbound = 0,
 	address = nil,
 	domain = nil,
 	datasize = nil,
@@ -272,6 +279,7 @@ local function reset_search()
 	datasize2 = nil
 	addresscheck = false
 	k, s, i = cfg.kmin, 0, 0
+	upperbound = 0
 	tried = 0
 	baseline_user_value = nil
 	first_change = nil
@@ -280,8 +288,8 @@ local function reset_search()
 end
 
 local function start_search()
-	cfg.fd, cfg.kmin, cfg.kmax = clamp_params(cfg.fd, cfg.kmin, cfg.kmax)	-- take care of edge cases/wrong inputs
-	total_trials = count_trials(cfg.fd, cfg.kmin, cfg.kmax)
+	cfg.fd, cfg.kmin, cfg.kmax, cfg.upperbound = clamp_params(cfg.fd, cfg.kmin, cfg.kmax, cfg.upperbound)	-- take care of edge cases/wrong inputs
+	total_trials = count_trials(cfg.fd, cfg.kmin, cfg.kmax, cfg.upperbound)
 	reset_search()
 	running = true
 	paused = false
@@ -363,7 +371,7 @@ local function step_machine()
 	end
 
 	if phase == "nextTrial" then
-		local max_s_for_k = (k == 0) and 0 or (cfg.fd - k)	-- k=0 special case
+		local max_s_for_k = (k == 0) and 0 or (cfg.upperbound - k)	-- k=0 special case
 		if s < max_s_for_k then
 			s = s + 1
 		else
@@ -428,10 +436,11 @@ end
 -- buttons, events, manual counters
 
 local function read_ui_into_cfg()
-	cfg.fd = tonumber(forms.gettext(in_fd))
+	cfg.fd = tonumber(forms.gettext(in_fd)) or 1
 --	cfg.fd=cfg.fd+1	-- if the final frame should be (branch frame + total duration). basically a 0/1 index issue
 	cfg.kmin = tonumber(forms.gettext(in_kmin)) or 0
-	cfg.kmax = tonumber(forms.gettext(in_kmax)) or (cfg.fd or 0)
+	cfg.kmax = tonumber(forms.gettext(in_kmax)) or cfg.fd
+	cfg.upperbound = tonumber(forms.gettext(in_upperbound)) or cfg.kmax
 	local s = forms.gettext(in_address) or ""
 	s = s:gsub("^%s+", ""):gsub("%s+$", ""):gsub("^0[xX]", "")	-- accepts with or without 0x
 	cfg.address = tonumber(s, 16)
@@ -573,6 +582,5 @@ update_counters_once()
 event.unregisterbyname("ROOM_SWEEP_MACHINE")
 event.unregisterbyname("ROOM_SWEEP_INPUTS")
 event.oninputpoll(function() end, "ROOM_SWEEP_INPUTS")
-
 
 event.onframeend(step_machine, "ROOM_SWEEP_MACHINE")
