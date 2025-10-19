@@ -439,9 +439,9 @@ end
 local function read_ui_into_cfg()
 	cfg.fd = tonumber(forms.gettext(in_fd)) or 1
 --	cfg.fd=cfg.fd+1	-- if the final frame should be (branch frame + total duration). basically a 0/1 index issue
-	cfg.kmin = tonumber(forms.gettext(in_kmin)) or 0
-	cfg.kmax = tonumber(forms.gettext(in_kmax)) or cfg.fd
-	cfg.upperbound = tonumber(forms.gettext(in_upperbound)) or cfg.kmax
+	cfg.kmin = tonumber(forms.gettext(in_kmin))	-- nil values are taken care of later in the clamp_params function
+	cfg.kmax = tonumber(forms.gettext(in_kmax))	-- nil values are taken care of later in the clamp_params function
+	cfg.upperbound = tonumber(forms.gettext(in_upperbound))	-- nil values are taken care of later in the clamp_params function
 	local s = forms.gettext(in_address) or ""
 	s = s:gsub("^%s+", ""):gsub("%s+$", ""):gsub("^0[xX]", "")	-- accepts with or without 0x
 	cfg.address = tonumber(s, 16)
