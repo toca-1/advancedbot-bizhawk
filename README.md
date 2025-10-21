@@ -41,6 +41,7 @@ Ways to speed up the search:
 - Small values of `k` take way longer to search then large values of `k` (simply because there are 100 ways to fit 1 input into 100 frames, but only 3 values of fitting 98 *consecutive* inputs in there). So in order to minimize your estimated time, make the number in **"min # of sweep frames" as large as possible** (while, of course, making sure that you don't miss out on any possible solutions because your `k_min` was too large)
 - The "No sweep inputs after frame" can drastically reduce the search space for situations where you have to wait for a variable change but the sweep inputs do not have to run for that long (for example, you have to "left" for an additional 50 frames to reach the exit of the room, but having sweep inputs in this 50-frame window does not make sense anymore) 
 - Disable any other scripts that you are running, especially those which involve reading memory
+- Click on any window that is not Bizhawk, or on the desktop. Not having Bizhawk in focus for some reason speeds things it up by ~15%, at least on my machine
 - Total durations of 100 frames are the threshold where the bot's runtime starts getting critial, especially if *min/max # of sweep frames* is not set properly
 
 ## Known issues
