@@ -492,7 +492,14 @@ end
 
 local function start_sweep_from_ui()
 	read_ui_into_cfg()
-	if cfg.addresscheck then start_search() end
+	if cfg.addresscheck then
+		start_search()
+	else
+		running = false
+		paused = true
+		phase = "idle"
+		client.pause()
+	end
 end
 
 local function toggle_pause()
