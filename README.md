@@ -48,6 +48,10 @@ Ways to speed up the search:
 
 Currently known bugs are listed [here](https://github.com/toca-1/advancedbot-bizhawk/blob/main/KNOWNISSUES.md)
 
+## Feature ideas
+
+A list of features that struck me as potentially useful when I used AdvancedBot for TASing can be found [here](https://github.com/toca-1/advancedbot-bizhawk/blob/main/FEATURE_IDEAS.md)
+
 ## Disclaimer: AI assistance
 Parts of this script were created with help from ChatGPT (GPT-5 Thinking). Yet, I want to stress that I reviewed, tested, and take responsibility for the final code
 
