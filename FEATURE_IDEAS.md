@@ -1,0 +1,6 @@
+- Trigger not just on variable change but also if a variable decreases below/increases above a certain threshold
+- Exclude hits based on second address (e.g., "don't record hit if second address—which in this example is health—is negative at the time of checking")
+- Introduce signed, Q16.16, etc. as variable types
+- Multiple sweep buttons, also for asynchronous sweeps (e.g., the first x frames should be one button, and the last y frames should be another button). The latter has the potential to make the sweep time explode so it probably has to be used with care
+- Have the bot press buttons before and/or after the sweep window (e.g., 'B' to open a door or something)
+- More systems (not just GBA)
